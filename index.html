@@ -402,7 +402,7 @@
         <div class="grid">
           <div class="card"><div class="icon-wrapper"><i data-lucide="download-cloud"></i></div><h3>1. Setup</h3><p>Download the files, install dependencies with <code>npm install</code>, and paste your Discord bot token into the config file.</p></div>
           <div class="card"><div class="icon-wrapper"><i data-lucide="file-pen-line"></i></div><h3>2. Create</h3><p>Write your rules in <code>.waves</code> files using natural language. It's as easy as writing a sentence.</p></div>
-          <div class="card"><div class="icon-wrapper"><i data-lucide="rocket"></i></div><h3>3. Launch</h3><p>Run <code>node index.js</code> in your terminal. Your bot is now live, powered by Waves.</p></div>
+          <div class="card"><div class="icon-wrapper"><i data-lucide="rocket"></i></div><h3>3. Launch</h3><p>Run <code>node main.js</code> in your terminal. Your bot is now live, powered by Waves.</p></div>
         </div>
     </section>
 
@@ -580,7 +580,7 @@
     // --- Download Function ---
     function downloadBot() {
       const a = document.createElement('a');
-      a.href = 'waves-bot.zip'; a.download = 'waves-bot.zip';
+      a.href = 'https://github.com/aspect0093/wave-bot/blob/main/wave-bot.zip'; a.download = 'waves-bot.zip';
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
 
