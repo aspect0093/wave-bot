@@ -1,0 +1,3 @@
+IF user says "kick them" KICK <@USER_ID> reason "Spamming"
+IF user says "embed help" SEND EMBED { "title": "Help", "description": "Need assistance?" }
+IF user says "guide" SEND 1by1 "Step 1" THEN "Step 2" THEN "Step 3"
