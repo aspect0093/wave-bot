@@ -8,7 +8,7 @@
 <p align="center">
   <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-18+-green.svg?logo=nodedotjs" alt="Node.js"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"></a>
-  <img src="https://img.shields.io/badge/Language-Waves-informational">
+  <img src="https://img.shields.io/badge/Language-Wave-informational">
 </p>
 
 ---
