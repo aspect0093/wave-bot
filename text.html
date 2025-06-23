@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Waves Bot</title>
+  
+  <!-- Google Fonts: Poppins & Fira Code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Fira+Code&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    /* --- Theming and Variables --- */
+    :root {
+      --primary: #5865F2; /* Discord Blurple */
+      --glow-primary: rgba(88, 101, 242, 0.5);
+      --secondary: #8a2be2; /* Electric Purple */
+      --glow-secondary: rgba(138, 43, 226, 0.4);
+      --background-dark: #0A091A; /* Near Black */
+      --background-light: #121023;
+      --card-bg: rgba(18, 16, 35, 0.5); /* Glassmorphism background */
+      --card-border: rgba(138, 43, 226, 0.15);
+      --card-hover-border: rgba(88, 101, 242, 0.5);
+      --text-light: #EAEAF0;
+      --text-muted: #9a99a3;
+      --code-bg: #1e1e2f;
+      --transition-fast: 0.3s ease;
+      --transition-medium: 0.5s ease;
+    }
+
+    /* --- Base & Scrollbar --- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--background-dark);
+      color: var(--text-light);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--background-dark); }
+    ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4752c4; }
+
+    /* --- Navigation Bar --- */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      background: rgba(10, 9, 26, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: top var(--transition-fast);
+    }
+    .nav-logo {
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      transition: color var(--transition-fast);
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--text-light); }
+    .nav-cta {
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: background-color var(--transition-fast);
+    }
+    .nav-cta:hover { background: #4752c4; }
+
+    /* --- Particle Canvas --- */
+    #particle-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    
+    /* --- Header / Hero --- */
+    header {
+      padding: 10rem 2rem 8rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    header h1 {
+      font-size: clamp(3rem, 7vw, 5rem);
+      margin-bottom: 1rem;
+      font-weight: 800;
+      letter-spacing: -2px;
+      text-shadow: 0 0 30px var(--glow-primary), 0 0 50px var(--glow-secondary);
+      animation: fadeInDown 1s var(--transition-medium) forwards;
+      opacity: 0;
+    }
+    header p {
+      font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+      max-width: 800px;
+      margin: 1.5rem auto 2.5rem;
+      opacity: 0;
+      color: var(--text-muted);
+      animation: fadeInUp 1s var(--transition-medium) forwards 0.3s;
+    }
+    .header-cta-group {
+        display: flex;
+        gap: 1rem;
+        animation: fadeInUp 1s var(--transition-medium) forwards 0.6s;
+        opacity: 0;
+    }
+    .header-cta {
+        background: var(--primary);
+        color: white;
+        padding: 1rem 2.5rem;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        box-shadow: 0 0 25px -5px var(--glow-primary);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .header-cta:hover {
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: 0 0 35px var(--glow-primary);
+    }
+    .header-cta.secondary {
+        background: transparent;
+        border: 2px solid var(--primary);
+        box-shadow: none;
+    }
+    .header-cta.secondary:hover {
+        background: var(--primary);
+        box-shadow: 0 0 35px var(--glow-primary);
+    }
+    
+    /* --- General Section & Content --- */
+    main {
+        background: linear-gradient(180deg, var(--background-dark) 0%, var(--background-light) 15%, var(--background-light) 85%, var(--background-dark) 100%);
+    }
+    section {
+      padding: 6rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      opacity: 0;
+      transform: translateY(50px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    section.is-visible { opacity: 1; transform: translateY(0); }
+    h2 {
+      font-size: clamp(2.2rem, 5vw, 3rem);
+      margin-bottom: 4rem;
+      text-align: center;
+      font-weight: 700;
+      background: linear-gradient(90deg, #c7c0ff, #a594fd, #8be9fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    /* --- Interactive Card Styles --- */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+    }
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 2.5rem 2rem;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      transition: transform var(--transition-fast), border-color var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before { /* Mouse-following glow effect */
+      content: '';
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, var(--glow-primary) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      top: var(--y, 50%);
+      left: var(--x, 50%);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .card:hover {
+      transform: translateY(-10px);
+      border-color: var(--card-hover-border);
+    }
+    .card:hover::before { opacity: 0.5; }
+    .card .icon-wrapper {
+      width: 55px; height: 55px;
+      background: linear-gradient(135deg, var(--primary), #7681f8);
+      border-radius: 14px;
+      display: flex; justify-content: center; align-items: center;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      color: white;
+    }
+    .card svg { width: 30px; height: 30px; stroke-width: 2; }
+    .card h3 { font-size: 1.4rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.75rem; }
+    .card p { font-size: 1rem; color: var(--text-muted); line-height: 1.6; }
+
+    /* --- CTA Section --- */
+    .cta-section {
+      text-align: center;
+      margin: 6rem auto;
+      padding: 6rem 2rem;
+      max-width: 1200px;
+      border-radius: 24px;
+      background: var(--background-light);
+      border: 1px solid var(--card-border);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    .stats-container {
+      display: flex;
+      justify-content: center;
+      gap: 4rem;
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+    }
+    .stat-item { text-align: center; }
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--text-light);
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .stat-label { font-size: 1rem; color: var(--text-muted); }
+
+    /* --- Footer --- */
+    footer {
+      text-align: center;
+      padding: 4rem 2rem 2rem;
+      background: var(--background-dark);
+      color: var(--text-muted);
+      border-top: 1px solid var(--card-border);
+    }
+    .footer-content { max-width: 1200px; margin: 0 auto; }
+    .footer-logo { font-size: 1.8rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-light); }
+    .footer-links { margin-bottom: 2rem; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; margin: 0 1rem; transition: color var(--transition-fast); }
+    .footer-links a:hover { color: var(--text-light); }
+    .social-icons { margin-bottom: 2rem; }
+    .social-icons a { color: var(--text-muted); margin: 0 0.75rem; transition: color var(--transition-fast), transform var(--transition-fast); display: inline-block; }
+    .social-icons a:hover { color: var(--primary); transform: scale(1.2); }
+    .social-icons svg { width: 24px; height: 24px; }
+    .copyright { font-size: 0.9rem; }
+
+    /* --- Discord Toast Notification --- */
+    #discord-toast {
+        position: fixed;
+        bottom: -100px; /* Start off-screen */
+        left: 2rem;
+        background: #2c2f33;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        z-index: 1000;
+        transition: bottom 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: bottom;
+    }
+    #discord-toast.show {
+        bottom: 2rem;
+    }
+    #discord-toast .discord-icon {
+        color: #7289DA;
+        flex-shrink: 0;
+    }
+    #discord-toast .toast-text {
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+    #discord-toast .join-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color var(--transition-fast);
+        white-space: nowrap;
+    }
+    #discord-toast .join-btn:hover {
+        background: #4752c4;
+    }
+    #discord-toast .close-btn {
+        background: transparent;
+        border: none;
+        color: #999;
+        font-size: 1.5rem;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0 0.5rem;
+    }
+    #discord-toast .close-btn:hover {
+        color: white;
+    }
+
+
+    /* --- Media Queries --- */
+    @media(max-width: 768px) {
+        nav { padding: 1rem; }
+        .nav-links { display: none; } /* Simpler nav for mobile */
+        header { padding: 8rem 1.5rem 6rem; }
+        .grid { grid-template-columns: 1fr; }
+        .stats-container { gap: 2rem; }
+        #discord-toast { left: 1rem; width: calc(100% - 2rem); }
+    }
+
+    /* --- Animations --- */
+    @keyframes fadeInDown { to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav id="navbar">
+    <a href="#" class="nav-logo">
+      <i data-lucide="waves"></i>
+      <span>Waves</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#getting-started" class="nav-link">Get Started</a>
+      <a href="#advanced-usage" class="nav-link">Docs</a>
+    </div>
+    <a href="#cta" class="nav-cta">Download</a>
+  </nav>
+
+  <!-- Header -->
+  <header>
+    <canvas id="particle-canvas"></canvas>
+    <h1>The Future of Discord Automation</h1>
+    <p>Craft powerful, custom Discord bots using simple, natural language. No code, no complexity. Just pure creative freedom for your community.</p>
+    <div class="header-cta-group">
+      <a href="#cta" class="header-cta"><i data-lucide="download"></i>Download Now</a>
+      <a href="#getting-started" class="header-cta secondary"><i data-lucide="book-open"></i>Read Docs</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Features Section -->
+    <section id="features">
+      <h2>Why Waves is Different</h2>
+      <div class="grid">
+        <div class="card"><div class="icon-wrapper"><i data-lucide="zap"></i></div><h3>Instant Creation</h3><p>Forget complex code. Describe your bot's logic in plain English and see it come to life instantly. The fastest way from idea to bot.</p></div>
+        <div class="card"><div class="icon-wrapper"><i data-lucide="shield-check"></i></div><h3>Ironclad Moderation</h3><p>Automate kicks, bans, and mutes with precision. Set durations, custom reasons, and confirmation messages effortlessly.</p></div>
+        <div class="card"><div class="icon-wrapper"><i data-lucide="message-square-plus"></i></div><h3>Dynamic Messaging</h3><p>Engage your users with rich embeds, sequenced messages, and multi-line responses. Your bot's communication, elevated.</p></div>
+        <div class="card"><div class="icon-wrapper"><i data-lucide="git-fork"></i></div><h3>Infinitely Extensible</h3><p>While simple to start, Waves is built for growth. Add your own custom actions and logic to the core parser for unlimited power.</p></div>
+        <div class="card"><div class="icon-wrapper"><i data-lucide="settings-2"></i></div><h3>Total Control</h3><p>Every detail is yours to command. Customize triggers, permissions, target users, and channels with intuitive placeholders.</p></div>
+        <div class="card"><div class="icon-wrapper"><i data-lucide="sparkles"></i></div><h3>Polished Experience</h3><p>From the engaging startup animations in your console to the sleek UI, Waves is designed to be a pleasure to use.</p></div>
+      </div>
+    </section>
+
+    <!-- Getting Started Section -->
+    <section id="getting-started">
+        <h2>🚀 Launch in 3 Simple Steps</h2>
+        <div class="grid">
+          <div class="card"><div class="icon-wrapper"><i data-lucide="download-cloud"></i></div><h3>1. Setup</h3><p>Download the files, install dependencies with <code>npm install</code>, and paste your Discord bot token into the config file.</p></div>
+          <div class="card"><div class="icon-wrapper"><i data-lucide="file-pen-line"></i></div><h3>2. Create</h3><p>Write your rules in <code>.waves</code> files using natural language. It's as easy as writing a sentence.</p></div>
+          <div class="card"><div class="icon-wrapper"><i data-lucide="rocket"></i></div><h3>3. Launch</h3><p>Run <code>node index.js</code> in your terminal. Your bot is now live, powered by Waves.</p></div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="cta" class="cta-section">
+      <h2>Join Thousands of Thriving Communities</h2>
+      <div class="stats-container">
+        <div class="stat-item">
+          <div class="stat-number" data-target="12500">0</div>
+          <div class="stat-label">Servers Protected</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="2100000">0</div>
+          <div class="stat-label">Commands Created</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="98.7" data-decimal="1">0.0</div>
+          <div class="stat-label">% Uptime</div>
+        </div>
+      </div>
+      <p>Download the Waves Bot today and start building intelligent, responsive Discord commands with unprecedented ease!</p>
+      <a href="#" class="header-cta" onclick="downloadBot()"><i data-lucide="download"></i>Download the Bot Files</a>
+    </section>
+  </main>
+  
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-logo">Waves Bot</div>
+      <div class="footer-links">
+        <a href="#features">Features</a>
+        <a href="#getting-started">Get Started</a>
+        <a href="#cta">Download</a>
+      </div>
+      <div class="social-icons">
+        <a href="#" aria-label="Discord"><i data-lucide="discord"></i></a>
+      </div>
+      <p class="copyright">&copy; 2025 Waves Bot · The Future of Simple Automation.</p>
+    </div>
+  </footer>
+
+  <!-- Discord Toast Notification -->
+  <div id="discord-toast">
+    <div class="discord-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.3698a19.7913 19.7913 0 0 0-4.8851-1.5152.0741.0741 0 0 0-.0785.0371c-.211.3753-.4464.8257-.618 1.2525a17.2963 17.2963 0 0 0-5.462 0c-.1716-.4268-.407-.8772-.618-1.2525a.0741.0741 0 0 0-.0785-.0371" a19.7913 19.7913 0 0 0-4.8851 1.5152.069.069 0 0 0-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 0 0 .0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0776.0776 0 0 0 .0842-.0276c.4616-.6304.8781-1.2988 1.229-2.0008a.076.076 0 0 0-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.892a.0741.0741 0 0 1-.0234-.0789c.0234-.0453.06-.089.108-.1054a12.2117 12.2117 0 0 0 2.5729.0825c.0781 0 .14-.0078.2-.0234a12.2117 12.2117 0 0 0 2.5729-.0825.0741.0741 0 0 1 .108.1054c.048.0164.0845.06.108.1054a.0741.0741 0 0 1-.0234.0789c-.5979.3425-1.2194.6444-1.8722.892a.076.076 0 0 0-.0416.1057c.3509.702 .7674 1.3704 1.229 2.0008a.0776.0776 0 0 0 .0842.0276c1.9516-.6067 3.9399-1.5219 5.9929-3.0294a.0824.0824 0 0 0 .0312-.0561c.5286-4.744-.8926-9.2447-3.6934-13.6602a.069.069 0 0 0-.0321-.0277zM8.02 15.3312c-.9432 0-1.71-.7832-1.71-1.744s.7668-1.744 1.71-1.744c.9431 0 1.71.7832 1.71 1.744s-.7669 1.744-1.71 1.744zm7.9849 0c-.9432 0-1.71-.7832-1.71-1.744s.7668-1.744 1.71-1.744c.9431 0 1.71.7832 1.71 1.744.0001 0 .0001 0-.0001.0001s-.7668 1.7439-1.71 1.7439z"/></svg>
+    </div>
+    <span class="toast-text">Join the official Waves community!</span>
+    <button class="join-btn" onclick="window.open('https://discord.gg/nqdQMxD8J9', '_blank')">Join Server</button>
+    <button class="close-btn" onclick="document.getElementById('discord-toast').classList.remove('show')">&times;</button>
+  </div>
+
+
+  <script>
+    // --- Particle Animation ---
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let particles = [];
+    const mouse = { x: null, y: null };
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        // Re-initialize particles on resize for better density
+        particles = [];
+        initParticles();
+    });
+
+    canvas.addEventListener('mousemove', (event) => {
+        mouse.x = event.x;
+        mouse.y = event.y;
+    });
+    
+    class Particle {
+      constructor(x, y, size, color, speedX, speedY) {
+        this.x = x; this.y = y; this.size = size; this.color = color;
+        this.speedX = speedX; this.speedY = speedY;
+      }
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      update() {
+        if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+        if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+        this.x += this.speedX; this.y += this.speedY;
+        this.draw();
+      }
+    }
+
+    function initParticles() {
+      const particleCount = Math.floor(canvas.width / 30);
+      for (let i = 0; i < particleCount; i++) {
+        let size = Math.random() * 2 + 1;
+        let x = Math.random() * canvas.width;
+        let y = Math.random() * canvas.height;
+        let speedX = (Math.random() * 0.4) - 0.2;
+        let speedY = (Math.random() * 0.4) - 0.2;
+        let color = 'rgba(88, 101, 242, 0.5)';
+        particles.push(new Particle(x, y, size, color, speedX, speedY));
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+      }
+      requestAnimationFrame(animateParticles);
+    }
+    
+    initParticles();
+    animateParticles();
+
+    // --- Lucide Icons ---
+    lucide.createIcons();
+
+    // --- Card Glow Effect ---
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            card.style.setProperty('--x', `${x}px`);
+            card.style.setProperty('--y', `${y}px`);
+        });
+    });
+
+    // --- Scroll Animations & Active Nav Link ---
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          navLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href').substring(1) === entry.target.id);
+          });
+          // Animate counters if they are in the viewport
+          if(entry.target.id === 'cta'){
+            document.querySelectorAll('.stat-number').forEach(counter => {
+                animateCounter(counter);
+            });
+          }
+        }
+      });
+    }, { rootMargin: '-50% 0px -50% 0px' });
+    sections.forEach(section => observer.observe(section));
+    
+    // --- Stat Counter Animation ---
+    function animateCounter(counter){
+        const target = +counter.getAttribute('data-target');
+        const decimals = counter.getAttribute('data-decimal') || 0;
+        const duration = 1500;
+        
+        // Prevent re-animation
+        if (counter.textContent != "0" && counter.textContent != "0.0") return;
+
+        let start = 0;
+        const stepTime = Math.abs(Math.floor(duration / target));
+
+        const timer = setInterval(() => {
+            start += target / (duration / 16); // Increment based on 60fps
+            if (start >= target) {
+                clearInterval(timer);
+                start = target;
+            }
+            counter.innerText = start.toFixed(decimals);
+        }, 16);
+    }
+    
+    // --- Download Function ---
+    function downloadBot() {
+      const a = document.createElement('a');
+      a.href = 'waves-bot.zip'; a.download = 'waves-bot.zip';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    // --- Discord Toast Notification Logic ---
+    document.addEventListener('DOMContentLoaded', () => {
+      const toast = document.getElementById('discord-toast');
+      // Show toast after a 3-second delay
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 3000);
+    });
+  </script>
+</body>
+</html>
+
